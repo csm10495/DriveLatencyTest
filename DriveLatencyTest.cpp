@@ -7,7 +7,9 @@
 */
 
 #include "Assert.h"
+#include "Config.h"
 #include "FDFile.h"
+#include "Workload.h"
 
 #include "local/CLI11.hpp"
 
@@ -54,43 +56,31 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.)" << std::endl << std::endl;
 }
 
-#include <chrono>
-#include <thread>
-#include <mutex>
-
-std::mutex mtx;
-
-void workload(std::string path)
-{
-	FDFile p(path);
-
-	auto start = std::chrono::high_resolution_clock::now();
-
-	int count = 0;
-	uint64_t microsecondCount = 0;
-	while (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - start).count() < 1e9)
-	{
-		ASSERT_NO_MSG(p.read(0, 4096));
-		microsecondCount += p.getLastIoInfo().elapsedMicroseconds;
-		count += 1;
-	}
-
-	mtx.lock();
-	std::cout << count << std::endl;
-	std::cout << microsecondCount << std::endl;
-	mtx.unlock();
-}
-
 int main(int argc, char** argv) {
 	CLI::App app{ "Drive Latency Test (DLT) is a quick/dirty test to get an idea of drive latency in various conditions." };
 
 	// flag arguments
 	bool license = false;
+
 	app.add_flag("--license", license, "If passed, present all license information.");
 
 	// string arguments
 	std::string path = "";
+	std::string workloadType = "SEQUENTIAL";
+
+	app.add_option("-w,--workload_type", workloadType, "The type of workload to do. Possible values: SEQUENTIAL");
 	app.add_option("-p,--path", path, "The path to the path we want to test with.");
+
+	// numeric arguments
+	uint32_t duration = 30;
+	uint64_t ioSize = 512;
+	uint64_t startingOffset = 0;
+	uint64_t endingOffset = 2097152; // 1 GB in 512 byte offsets
+	
+	app.add_option("-d,--duration", duration, "The duration for the test in seconds.");
+	app.add_option("-i,--io_size", ioSize, "Size of each IO in bytes.");
+	app.add_option("-s,--start_offset", startingOffset, "Starting offset in bytes.");
+	app.add_option("-e,--end_offset", endingOffset, "Ending offset in bytes.");
 
 	CLI11_PARSE(app, argc, argv);
 
@@ -106,16 +96,21 @@ int main(int argc, char** argv) {
 		app.exit(CLI::RequiredError("--path/-p"));
 	}
 
-	std::list<std::thread> threads;
-	for (size_t i = 0; i < 1; i++)
+	CONFIG config
 	{
-		threads.push_back(std::thread(workload, path));
-	}
+		.Seconds = duration,
+		.IOSizeInBytes = ioSize,
+		.StartingOffsetInBytes = startingOffset,
+		.EndingOffsetInBytes = endingOffset,
+		.WorkloadType = toWorkloadTypeEnum(workloadType),
+		.Path = path
+	};
+	
+	std::cout << "Configuration:" << std::endl << config.toString() << std::endl;
 
-	for (auto& i : threads)
-	{
-		i.join();
-	}
+	Workload w(config);
+	auto result = w.runWorkload();
+	std::cout << "Result:" << std::endl << result.toString() << std::endl;
 
 	return EXIT_SUCCESS;
 }

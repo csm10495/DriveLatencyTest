@@ -9,6 +9,9 @@ project ("DriveLatencyTest")
 file(GLOB DST_SOURCES "*.cpp")
 add_executable (DriveLatencyTest ${DST_SOURCES})
 
+# Enable latest C++ Standard
+set_property(TARGET DriveLatencyTest PROPERTY CXX_STANDARD 20)
+
 # Constants
 set(EXTERNAL_INCLUDE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/local/")
 set(CLI11_PATH "${EXTERNAL_INCLUDE_FOLDER}/CLI11.hpp")

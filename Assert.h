@@ -6,6 +6,8 @@
 	This is the header for assert-related functionality for when things go really wrong.
 */
 
+#pragma once
+
 #include <cassert>
 #include <cstdlib>
 #include <iostream>

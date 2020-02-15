@@ -30,7 +30,7 @@
 #endif 
 
 // funny enough on Windows the numBytes for IO is an unsigned int. On POSIX it's a size_t.
-#ifdef OS_DLT_WINDOWS
+#ifdef DLT_OS_WINDOWS
 // Windows
 typedef unsigned IO_SIZE_TYPE;
 #else
@@ -60,19 +60,17 @@ FDFile::~FDFile()
 	buffer = NULL;
 }
 
-#include <Windows.h>
-
 bool FDFile::read(uint64_t offsetBytes, uint64_t numBytes)
 {
 	ASSERT((uint64_t)MAX_IO_SIZE > numBytes, "IO was requested to be larger than max allowed. Too large: " + std::to_string(numBytes));
 	ASSERT(lseek64(handle, offsetBytes, SEEK_SET) == offsetBytes, "Could not seek to offset: " + std::to_string(offsetBytes));
 
-	int numBytesRead;
+	IO_SIZE_TYPE numBytesRead;
 
 	auto start = std::chrono::high_resolution_clock::now();
 
 	// START FAST PATH
-	numBytesRead = ::read(handle, buffer, static_cast<IO_SIZE_TYPE>(numBytes));
+	numBytesRead = static_cast<IO_SIZE_TYPE>(::read(handle, buffer, static_cast<IO_SIZE_TYPE>(numBytes)));
 	// END FAST PATH
 
 	auto end = std::chrono::high_resolution_clock::now();
@@ -81,8 +79,6 @@ bool FDFile::read(uint64_t offsetBytes, uint64_t numBytes)
 	lastIoInfo.numBytes = numBytes;
 	lastIoInfo.offsetBytes = offsetBytes;
 	lastIoInfo.elapsedMicroseconds = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-
-	//ioInfos.push_back(lastIoInfo);
 
 	return numBytesRead == numBytes;
 }

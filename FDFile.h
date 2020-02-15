@@ -6,6 +6,8 @@
 	This is the header for the FDFile class
 */
 
+#pragma once
+
 #include <list>
 #include <string>
 
@@ -44,5 +46,8 @@ private:
 	//! info on the previous IO
 	IO_INFO lastIoInfo;
 
-	std::list<IO_INFO> ioInfos;
+	// disable some things
+	FDFile& operator=(const FDFile&) = delete;
+	FDFile(const FDFile&) = delete;
+	FDFile() = default;
 };
