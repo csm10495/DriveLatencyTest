@@ -16,13 +16,17 @@
 namespace details
 {
 	//! Internal assert function, will assert if expressionValue calls for it.
-	void _assert(int expressionValue, const std::string& expression, const std::string& file, const std::string& function, const size_t lineNumber);
+	void _assert(int expressionValue, const std::string& expression, const std::string& file, const std::string& function, const size_t lineNumber, const std::string &message);
 }
 
-#define ASSERT(expression) \
-	details::_assert(expression, #expression, __FILE__, __func__, __LINE__)
+#define ASSERT_NO_MSG(expression) \
+	details::_assert(expression, #expression, __FILE__, __func__, __LINE__, "")
+
+#define ASSERT(expression, message) \
+	details::_assert(expression, #expression, __FILE__, __func__, __LINE__, message)
 
 #else // ^NDEBUG not defined
-#define ASSERT(expression, file, function, lineNumber)
+#define ASSERT_NO_MSG(expression) expression
+#define ASSERT(expression, message) expression
 #endif // ^NDEBUG defined
 
