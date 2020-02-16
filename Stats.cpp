@@ -6,9 +6,43 @@
 	This is the implementation for stat keeping things
 */
 
+#include <algorithm>
 #include <string>
 
 #include "Stats.h"
+
+_WORKLOAD_RESULT::_WORKLOAD_RESULT(const std::list<_WORKLOAD_RESULT>& workloadResults) : _WORKLOAD_RESULT()
+{
+	for (auto& result : workloadResults)
+	{
+		// min/max
+		maxLatencyMicroseconds = std::max(result.maxLatencyMicroseconds, maxLatencyMicroseconds);
+		minLatencyMicroseconds = std::min(result.minLatencyMicroseconds, minLatencyMicroseconds);
+
+		// things to divide later
+		averageLatencyMicroseconds += result.averageLatencyMicroseconds;
+		microsecondsDoingIo += result.microsecondsDoingIo;
+		expectedWorkloadMicroseconds += result.expectedWorkloadMicroseconds;
+		efficiencyPercentage += result.efficiencyPercentage;
+
+		//things just to add
+		numIosCompleted += result.numIosCompleted;
+		iops += result.iops;
+		totalBytesRead += result.totalBytesRead;
+	}
+
+	// divide to get average
+	averageLatencyMicroseconds /= workloadResults.size();
+	microsecondsDoingIo /= workloadResults.size();
+	expectedWorkloadMicroseconds /= workloadResults.size();
+	efficiencyPercentage /= workloadResults.size();
+}
+
+_WORKLOAD_RESULT::_WORKLOAD_RESULT()
+{
+	memset(this, 0, sizeof(_WORKLOAD_RESULT));
+	this->minLatencyMicroseconds = -1; // preset high
+}
 
 std::string _WORKLOAD_RESULT::toString() const
 {

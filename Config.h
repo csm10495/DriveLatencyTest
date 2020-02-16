@@ -65,6 +65,7 @@ inline std::string toString(WorkloadTypeEnum w)
 typedef struct _CONFIG
 {
 	uint32_t Seconds;
+	uint32_t ThreadCount;
 	uint64_t IOSizeInBytes;
 	uint64_t StartingOffsetInBytes;
 	uint64_t EndingOffsetInBytes;

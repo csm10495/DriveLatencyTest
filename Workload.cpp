@@ -9,6 +9,7 @@
 #include "FDFile.h"
 #include "Workload.h"
 
+#include <algorithm>
 #include <chrono>
 
 Workload::Workload(const CONFIG& config)
@@ -22,7 +23,7 @@ Workload::Workload(const CONFIG& config)
 
 WORKLOAD_RESULT Workload::runWorkload()
 {
-	WORKLOAD_RESULT workloadResult = { 0 };
+	WORKLOAD_RESULT workloadResult;
 	workloadResult.expectedWorkloadMicroseconds = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::seconds(config.Seconds)).count();
 	workloadResult.minLatencyMicroseconds = -1; // preset high
 
@@ -47,7 +48,7 @@ WORKLOAD_RESULT Workload::runWorkload()
 		workloadResult.totalBytesRead += drive.getLastIoInfo().numBytes;
 	}
 
-	workloadResult.efficiencyPercentage = static_cast<float>(workloadResult.microsecondsDoingIo) / workloadResult.expectedWorkloadMicroseconds;
+	workloadResult.efficiencyPercentage = std::min(static_cast<double>(100), static_cast<double>(workloadResult.microsecondsDoingIo) / workloadResult.expectedWorkloadMicroseconds);
 	workloadResult.iops = static_cast<uint64_t>(workloadResult.numIosCompleted / config.Seconds);
 	workloadResult.averageLatencyMicroseconds = static_cast<uint64_t>(static_cast<double>(workloadResult.microsecondsDoingIo) / workloadResult.numIosCompleted);
 
@@ -75,4 +76,7 @@ uint64_t Workload::getNextByteOffset()
 		// the number must be divisible by the io size. (technically it should be by the sector size but we don't know that).
 		return (randomNumberDistribution(randomNumberGenerator) / config.IOSizeInBytes) * config.IOSizeInBytes;
 	}
+
+	ASSERT(0, std::to_string((int)config.WorkloadType) + " is not a valid workload type");
+	return -1;
 }

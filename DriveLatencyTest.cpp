@@ -6,6 +6,8 @@
 	This is the main entry point for DLT.
 */
 
+#include <thread>
+#include <mutex>
 #include "Assert.h"
 #include "Config.h"
 #include "FDFile.h"
@@ -84,11 +86,13 @@ int main(int argc, char** argv) {
 	uint64_t ioSize = 512;
 	uint64_t startingOffset = 0;
 	uint64_t endingOffset = 2097152; // 1 GB in 512 byte offsets
+	uint32_t numThreads = 1;
 	
 	app.add_option("-d,--duration", duration, "The duration for the test in seconds.");
 	app.add_option("-i,--io_size", ioSize, "Size of each IO in bytes.");
 	app.add_option("-s,--start_offset", startingOffset, "Starting offset in bytes.");
 	app.add_option("-e,--end_offset", endingOffset, "Ending offset in bytes.");
+	app.add_option("-t,--thread_count", numThreads, "Number of threads to run the workload.");
 
 	CLI11_PARSE(app, argc, argv);
 
@@ -107,6 +111,7 @@ int main(int argc, char** argv) {
 	CONFIG config
 	{
 		.Seconds = duration,
+		.ThreadCount = numThreads,
 		.IOSizeInBytes = ioSize,
 		.StartingOffsetInBytes = startingOffset,
 		.EndingOffsetInBytes = endingOffset,
@@ -116,9 +121,30 @@ int main(int argc, char** argv) {
 	
 	std::cout << "Configuration:" << std::endl << config.toString() << std::endl;
 
-	Workload w(config);
-	auto result = w.runWorkload();
-	std::cout << "Result:" << std::endl << result.toString() << std::endl;
+	std::list<std::thread> threads;
+	std::list<WORKLOAD_RESULT> workloadResults;
+	std::mutex mutex;
+
+	for (uint32_t i = 0; i < numThreads; i++)
+	{
+		threads.push_back(std::thread([&config, &mutex, &workloadResults]() {
+
+			Workload w(config);
+			auto result = w.runWorkload();
+
+			mutex.lock();
+			workloadResults.push_back(result);
+			//std::cout << "Result:" << std::endl << result.toString() << std::endl;
+			mutex.unlock();
+		}));
+	}
+
+	for (auto& thread : threads)
+	{
+		thread.join();
+	}
+
+	std::cout << "Final Result:" << std::endl << WORKLOAD_RESULT(workloadResults).toString() << std::endl;
 
 	return EXIT_SUCCESS;
 }
