@@ -24,7 +24,7 @@ endif()
 # Preprocessor defines
 
 # Full OS name
-add_compile_definitions(DLT_OPERATING_SYSTEM=${CMAKE_SYSTEM_NAME})
+add_compile_definitions(DLT_OPERATING_SYSTEM="${CMAKE_SYSTEM_NAME}")
 
 # DLT_OS_WINDOWS/LINUX
 string(TOUPPER DLT_OS_${CMAKE_SYSTEM_NAME} DLT_OS_NAME)
@@ -33,3 +33,6 @@ add_compile_definitions(${DLT_OS_NAME})
 # For VC++ disable Windows-specific deprecations/warnings
 add_compile_definitions("_CRT_SECURE_NO_WARNINGS")
 add_compile_definitions("_CRT_NONSTDC_NO_DEPRECATE")
+
+# Add Build Type
+add_compile_definitions(DLT_BUILD_TYPE="${CMAKE_BUILD_TYPE}")

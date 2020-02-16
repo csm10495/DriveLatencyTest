@@ -12,12 +12,12 @@ std::string _CONFIG::toString() const
 {
 	std::string retStr = "";
 
-	retStr += "Duration (Seconds)                 : " + std::to_string(Seconds) + "\n";
-	retStr += "IO Size (Bytes)                    : " + std::to_string(IOSizeInBytes) + "\n";
-	retStr += "Starting Offset (Bytes)            : " + std::to_string(StartingOffsetInBytes) + "\n";
-	retStr += "Ending Offset (Bytes)              : " + std::to_string(EndingOffsetInBytes) + "\n";
-	retStr += "Workload Type                      : " + ::toString(WorkloadType) + "\n";
-	retStr += "Path                               : " + Path + "\n";
+	retStr += "  Duration (Seconds)                 : " + std::to_string(Seconds) + "\n";
+	retStr += "  IO Size (Bytes)                    : " + std::to_string(IOSizeInBytes) + "\n";
+	retStr += "  Starting Offset (Bytes)            : " + std::to_string(StartingOffsetInBytes) + "\n";
+	retStr += "  Ending Offset (Bytes)              : " + std::to_string(EndingOffsetInBytes) + "\n";
+	retStr += "  Workload Type                      : " + ::toString(WorkloadType) + "\n";
+	retStr += "  Path                               : " + Path + "\n";
 
 	return retStr;
 }

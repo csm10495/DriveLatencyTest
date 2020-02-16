@@ -14,6 +14,10 @@
 Workload::Workload(const CONFIG& config)
 {
 	this->config = config;
+	
+	// setup random number generation
+	this->randomNumberGenerator = std::mt19937_64(std::random_device()());
+	this->randomNumberDistribution = std::uniform_int_distribution<uint64_t>(this->config.StartingOffsetInBytes, this->config.EndingOffsetInBytes - this->config.IOSizeInBytes);
 }
 
 WORKLOAD_RESULT Workload::runWorkload()
@@ -48,4 +52,27 @@ WORKLOAD_RESULT Workload::runWorkload()
 	workloadResult.averageLatencyMicroseconds = static_cast<uint64_t>(static_cast<double>(workloadResult.microsecondsDoingIo) / workloadResult.numIosCompleted);
 
 	return workloadResult;
+}
+
+uint64_t Workload::getNextByteOffset()
+{
+	auto ret = nextByteOffset;
+
+	if (config.WorkloadType == WorkloadTypeEnum::Sequential)
+	{
+		// handle if we wrap around
+		nextByteOffset += getNextIoSize();
+		if (nextByteOffset > config.EndingOffsetInBytes)
+			[[unlikely]]
+		{
+			nextByteOffset = config.StartingOffsetInBytes;
+		}
+
+		return ret;
+	}
+	else if (config.WorkloadType == WorkloadTypeEnum::Random)
+	{
+		// the number must be divisible by the io size. (technically it should be by the sector size but we don't know that).
+		return (randomNumberDistribution(randomNumberGenerator) / config.IOSizeInBytes) * config.IOSizeInBytes;
+	}
 }

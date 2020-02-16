@@ -34,7 +34,9 @@ namespace details
 	void _assert(int expressionValue, const std::string& expression, const std::string& file, const std::string& function, const size_t lineNumber, const std::string& message)
 	{
 		if (!expressionValue)
+			[[unlikely]]
 		{
+			
 			std::string fileName = basename((char*)file.c_str());
 			std::cerr << "ASSERT: (" << fileName << ":" << function << ":" << lineNumber << "): " << "EXPR: " << expression << ". " << message << std::endl;
 			abort();

@@ -7,6 +7,7 @@
 */
 
 #include <chrono>
+#include <limits>
 #include <string.h>
 
 #include "Assert.h"
@@ -38,6 +39,12 @@ typedef unsigned IO_SIZE_TYPE;
 typedef size_t IO_SIZE_TYPE;
 #endif
 
+/*! Funny enough the offset is a signed int since you may want to seek backward
+     (in a file... not really in our case).
+*/
+typedef int64_t IO_OFFSET_TYPE;
+const uint64_t MAX_IO_OFFSET = static_cast<uint64_t>(std::numeric_limits<IO_OFFSET_TYPE>::max());
+
 #define MAX_IO_SIZE ((IO_SIZE_TYPE)-1)
 
 FDFile::FDFile(const std::string& path)
@@ -63,6 +70,7 @@ FDFile::~FDFile()
 bool FDFile::read(uint64_t offsetBytes, uint64_t numBytes)
 {
 	ASSERT((uint64_t)MAX_IO_SIZE > numBytes, "IO was requested to be larger than max allowed. Too large: " + std::to_string(numBytes));
+	ASSERT(offsetBytes < MAX_IO_OFFSET, "The given byte offset was larger than the platform natively supports: " + std::to_string(offsetBytes));
 	ASSERT(lseek64(handle, offsetBytes, SEEK_SET) == offsetBytes, "Could not seek to offset: " + std::to_string(offsetBytes));
 
 	IO_SIZE_TYPE numBytesRead;

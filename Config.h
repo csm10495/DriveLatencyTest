@@ -17,7 +17,8 @@
 enum class WorkloadTypeEnum
 {
 	Unknown,
-	Sequential
+	Sequential,
+	Random
 };
 
 inline WorkloadTypeEnum toWorkloadTypeEnum(std::string s)
@@ -30,6 +31,10 @@ inline WorkloadTypeEnum toWorkloadTypeEnum(std::string s)
 	if (s == "SEQUENTIAL")
 	{
 		return WorkloadTypeEnum::Sequential;
+	}
+	else if (s == "RANDOM")
+	{
+		return WorkloadTypeEnum::Random;
 	}
 
 	ASSERT(0, s + " is not a valid WorkloadTypeEnum");
@@ -46,6 +51,10 @@ inline std::string toString(WorkloadTypeEnum w)
 	else if (w == WorkloadTypeEnum::Sequential)
 	{
 		return "Sequential";
+	}
+	else if (w == WorkloadTypeEnum::Random)
+	{
+		return "Random";
 	}
 
 	ASSERT(0, std::to_string((int)w) + " is not a valid workload type");

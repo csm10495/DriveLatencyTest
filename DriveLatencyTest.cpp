@@ -59,6 +59,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 int main(int argc, char** argv) {
 	CLI::App app{ "Drive Latency Test (DLT) is a quick/dirty test to get an idea of drive latency in various conditions." };
 
+	constexpr uint16_t bitness = sizeof(void*) == 8 ? 64 : 86;
+	std::cout << R"(
+  ___  _  _____ 
+ |   \| ||_   _|
+ | |) | |__| |  
+ |___/|____|_|  
+                Drive Latency Test... Version 1.0.0 - )" << DLT_BUILD_TYPE << " x" << bitness << std::endl;
+
 	// flag arguments
 	bool license = false;
 

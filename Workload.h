@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <random>
+
 #include "Config.h"
 #include "Stats.h"
 
@@ -24,19 +26,7 @@ public:
 
 private:
 	// Gets the offset for the next IO
-	inline uint64_t getNextByteOffset()
-	{
-		auto ret = nextByteOffset;
-
-		// handle if we wrap around
-		nextByteOffset += getNextIoSize();
-		if (nextByteOffset > config.EndingOffsetInBytes)
-		{
-			nextByteOffset = config.StartingOffsetInBytes;
-		}
-
-		return ret;
-	}
+	uint64_t getNextByteOffset();
 
 	// Gets the size for the next IO
 	inline uint64_t getNextIoSize()
@@ -51,6 +41,10 @@ private:
 	//! Things to maintain a current state
 	uint64_t nextByteOffset;
 	uint64_t nextIoSize;
+
+	//! Random number generation in case we need it
+	std::mt19937_64 randomNumberGenerator;
+	std::uniform_int_distribution<uint64_t> randomNumberDistribution;
 
 	// disable some things
 	Workload& operator=(const Workload&) = delete;
