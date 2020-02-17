@@ -30,7 +30,7 @@ WORKLOAD_RESULT Workload::runWorkload()
 	nextByteOffset = config.StartingOffsetInBytes;
 	nextIoSize = config.IOSizeInBytes;
 
-	FDFile drive(config.Path);
+	FDFile drive(config);
 
 	auto end = std::chrono::high_resolution_clock::now() + std::chrono::seconds(config.Seconds);
 

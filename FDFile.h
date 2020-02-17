@@ -11,6 +11,7 @@
 #include <list>
 #include <string>
 
+#include "Config.h"
 #include "Stats.h"
 
 //! File-descriptor based file class
@@ -18,9 +19,9 @@ class FDFile
 {
 public:
 
-	/*! Constructor that takes the path to open. 
+	/*! Constructor that takes in the current config
 	*/
-	FDFile(const std::string& path);
+	FDFile(const CONFIG &config);
 
 	//! Destructor. Will close the file.
 	~FDFile();

@@ -9,6 +9,10 @@ project ("DriveLatencyTest")
 file(GLOB DST_SOURCES "*.cpp")
 add_executable (DriveLatencyTest ${DST_SOURCES})
 
+# Add Threads (pthread on Linux)
+find_package(Threads)
+target_link_libraries(DriveLatencyTest ${CMAKE_THREAD_LIBS_INIT})
+
 # Enable latest C++ Standard
 set_property(TARGET DriveLatencyTest PROPERTY CXX_STANDARD 20)
 

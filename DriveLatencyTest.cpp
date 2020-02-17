@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
 	if (!path.size())
 	{
 		std::cerr << "No path was given. It is required to do a latency test." << std::endl;
-		app.exit(CLI::RequiredError("--path/-p"));
+		exit(app.exit(CLI::RequiredError("--path/-p")));
 	}
 
 	CONFIG config
