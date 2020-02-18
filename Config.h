@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 enum class WorkloadTypeEnum
 {
@@ -69,8 +70,12 @@ typedef struct _CONFIG
 	uint64_t IOSizeInBytes;
 	uint64_t StartingOffsetInBytes;
 	uint64_t EndingOffsetInBytes;
+	uint64_t MaxIOsPerSecond;
 	WorkloadTypeEnum WorkloadType;
 	std::string Path;
 
 	std::string toString() const;
+
+	//! Splits this config into a vector of configs for the given number of threads.
+	std::vector<_CONFIG> splitForThreads(const uint32_t numThreads) const;
 }CONFIG;

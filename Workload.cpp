@@ -11,6 +11,9 @@
 
 #include <algorithm>
 #include <chrono>
+#include <thread>
+
+#define NOW std::chrono::high_resolution_clock::now()
 
 Workload::Workload(const CONFIG& config)
 {
@@ -32,9 +35,13 @@ WORKLOAD_RESULT Workload::runWorkload()
 
 	FDFile drive(config);
 
-	auto end = std::chrono::high_resolution_clock::now() + std::chrono::seconds(config.Seconds);
+	auto end = NOW + std::chrono::seconds(config.Seconds);
 
-	while (std::chrono::high_resolution_clock::now() < end)
+	uint64_t iosThisSecond = 0;
+	auto thisSecondStart = NOW;
+	auto thisSecondEnd = NOW + std::chrono::seconds(1);
+
+	while (NOW < end)
 	{
 		// loop-ty loop
 		ASSERT(drive.read(getNextByteOffset(), getNextIoSize()), "Failed to read");
@@ -46,6 +53,26 @@ WORKLOAD_RESULT Workload::runWorkload()
 		workloadResult.microsecondsDoingIo += lastIoInfo.elapsedMicroseconds;
 		workloadResult.numIosCompleted += 1;
 		workloadResult.totalBytesRead += drive.getLastIoInfo().numBytes;
+
+		// start io per second handling ////
+		iosThisSecond += 1;
+		if (iosThisSecond >= config.MaxIOsPerSecond)
+		{
+			// will exit this loop when thisSecond is over
+			while (NOW < thisSecondEnd)
+			{
+				std::this_thread::sleep_until(thisSecondEnd);
+			}
+		}
+
+		// if we're onto the next second reset our markers
+		if (NOW > thisSecondEnd)
+		{
+			iosThisSecond = 0;
+			thisSecondStart = NOW;
+			thisSecondEnd = NOW + std::chrono::seconds(1);
+		}
+		// end io per second handling    ////
 	}
 
 	workloadResult.efficiencyPercentage = std::min(static_cast<double>(100), static_cast<double>(workloadResult.microsecondsDoingIo) / workloadResult.expectedWorkloadMicroseconds);

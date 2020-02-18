@@ -87,12 +87,14 @@ int main(int argc, char** argv) {
 	uint64_t startingOffset = 0;
 	uint64_t endingOffset = 2097152; // 1 GB in 512 byte offsets
 	uint32_t numThreads = 1;
-	
+	uint64_t maxIops = std::numeric_limits<uint64_t>::max();
+
 	app.add_option("-d,--duration", duration, "The duration for the test in seconds.");
 	app.add_option("-i,--io_size", ioSize, "Size of each IO in bytes.");
 	app.add_option("-s,--start_offset", startingOffset, "Starting offset in bytes.");
 	app.add_option("-e,--end_offset", endingOffset, "Ending offset in bytes.");
-	app.add_option("-t,--thread_count", numThreads, "Number of threads to run the workload.");
+	app.add_option("-t,--thread_count", numThreads, "Number of threads to run the workload.")->check(CLI::Range(static_cast<uint32_t>(1), std::numeric_limits<uint32_t>::max()));
+	app.add_option("-m,--max_iops", maxIops, "Limit the number of IOPs to this number.");
 
 	CLI11_PARSE(app, argc, argv);
 
@@ -115,21 +117,24 @@ int main(int argc, char** argv) {
 		.IOSizeInBytes = ioSize,
 		.StartingOffsetInBytes = startingOffset,
 		.EndingOffsetInBytes = endingOffset,
+		.MaxIOsPerSecond = maxIops,
 		.WorkloadType = toWorkloadTypeEnum(workloadType),
 		.Path = path
 	};
-	
+
 	std::cout << "Configuration:" << std::endl << config.toString() << std::endl;
 
 	std::list<std::thread> threads;
 	std::list<WORKLOAD_RESULT> workloadResults;
 	std::mutex mutex;
 
+	auto configs = config.splitForThreads(numThreads);
 	for (uint32_t i = 0; i < numThreads; i++)
 	{
-		threads.push_back(std::thread([&config, &mutex, &workloadResults]() {
+		auto& thisConfig = configs[i];
+		threads.push_back(std::thread([&thisConfig, &mutex, &workloadResults]() {
 
-			Workload w(config);
+			Workload w(thisConfig);
 			auto result = w.runWorkload();
 
 			mutex.lock();
